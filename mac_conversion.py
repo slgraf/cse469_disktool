@@ -1,3 +1,6 @@
+#uses Python 3.5 with Anaconda
+#Anaconda not required for this code, but Python 3.5 is
+
 import os
 import sys
 
