@@ -22,11 +22,14 @@ months = {
 #converts hex to date, need to find the format for taking in inputs
 #this input comes in from the command line
 def hex_to_date(hex1):
-	my_hex = hex1[2:len(hex1)]
+	hex1_1 = hex1[2:4]
+	hex1_2 = hex1[4:6]
+	my_hex = hex1_2+hex1_1
+
 	scale = 16
 	num_of_bits = len(my_hex)*4
 	binary_rep = ( bin(int(my_hex, scale))[2:] ).zfill(num_of_bits)
-
+	
 	year = binary_rep[0:7]
 	month = binary_rep[7:11]
 	day = binary_rep[11:16]
@@ -40,7 +43,10 @@ def hex_to_date(hex1):
 #moving on to the conversion to time from hex
 #this input comes in from a .txt file
 def hex_to_time(hex2):
-	my_hex2 = hex2[2:len(hex2)]
+	hex2_1 = hex2[2:4]
+	hex2_2 = hex2[4:6]
+	my_hex2 = hex2_2+hex2_1
+	
 	scale = 16
 	num_of_bits2 = len(my_hex2)*4
 	binary_rep2 = ( bin(int(my_hex2, scale))[2:]).zfill(num_of_bits2)
