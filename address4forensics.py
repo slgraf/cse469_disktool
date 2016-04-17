@@ -1,7 +1,5 @@
 """Usage: address4forensics.py  -L | --logical [-b OFFSET | --partition-start=offset] 
-			 [[-p ADDRESS | --physical-known=address] | [[-c ADDRESS | --cluster-known=address] [
-			 -k SECTORS | --cluster-size=sectors] [-r SECTORS | --reserved=sectors] [
-			 -t TABLES | --fat-tables=tables] [-f SECTORS | --fat-length=sectors]]]
+			
 		  address4forensics.py  -P | --physical [-b OFFSET | --partition-start=offset]
 		  	 [[-l ADDRESS | --logical-known=address] | [[-c ADDRESS | --clusterknown=address] [
 			 -k SECTORS | --cluster-size=sectors] [-r SECTORS | --reserved=sectors] [
@@ -31,17 +29,53 @@ Options:
 	-f sectors, --fat-length=sectors
 
 """
-import docopt
 
+#[[-p ADDRESS | --physical-known=address] | [[-c ADDRESS | --cluster-known=address]
+#			 [-k SECTORS | --cluster-size=sectors] [-r SECTORS | --reserved=sectors]
+#			 [-t TABLES | --fat-tables=tables] [-f SECTORS | --fat-length=sectors]]]
+			 
+import docopt
 
 if __name__ == '__main__':
 	arguments = docopt.docopt(__doc__)
+
+#beginning of --logical section of arguments
 	if arguments["--logical"]:
-		if arguments['-partition-start']:
+		if arguments['--partition-start']:
 			offset = int(arguments['--partition-start'])
-			if arguments['--physical-known']:
-				phy_address = int(arguments['--physical-known'])
-			elif arguments['-cluster-known']:
+			print(offset)
+			# if arguments['--physical-known']:
+			# 	phy_address = int(arguments['--physical-known'])
+			# 	print(phy_address)
+
+			# elif arguments['--cluster-known']:
+			# 	clus_address = int(arguments['--cluster-known'])
+			# 	if arguments['--cluster-size']:
+			# 		sec_per_clus = int(arguments['--cluster-size'])
+			# 		if arguments['--reserved']:
+			# 			reser_sec = int(arguments['-reserved'])
+			# 			if arguments['--fat-tables']:
+			# 				FAT_tables = int(arguments['-fat-tables'])
+			# 				if arguments['--fat-length']:
+			# 					len_of_FAT = int(arguments['--fat-length'])
+			# 					print(len_of_FAT)
+	elif arguments["-L"]:
+		if arguments['-b']:
+			offset = int(arguments['-b'])
+			print(offset)
+			# if arguments['-p']:
+			# 	phy_address = int(arguments['-p'])
+			# 	print(phy_address)
+
+#beginning of --physical section of arguments
+	elif arguments["--physical"]:
+		if arguments['--partition-start']:
+			offset = int(arguments['--partition-start'])
+			if arguments['--logical-known']:
+				log_address = int(arguments['--logical-known'])
+				print(log_address)
+
+			elif arguments['--cluster-known']:
 				clus_address = int(arguments['--cluster-known'])
 				if arguments['--cluster-size']:
 					sec_per_clus = int(arguments['--cluster-size'])
@@ -49,9 +83,20 @@ if __name__ == '__main__':
 						reser_sec = int(arguments['-reserved'])
 						if arguments['--fat-tables']:
 							FAT_tables = int(arguments['-fat-tables'])
-							if arguments['--fat-length']
+							if arguments['--fat-length']:
 								len_of_FAT = int(arguments['--fat-length'])
+								print(len_of_FAT)
 
+#beginning of --cluster section of arguments
+	elif arguments["--cluster"]:
+		if arguments['--partition-start']:
+			offset = int(arguments['--partition-start'])
+			if arguments['--logical-known']:
+				log_address = int(arguments['--logical-known'])
+				print(log_address)
+			elif arguments["--physical-known"]:
+				phy_address = int(arguments['--physical-known'])
+				print(phy_address)
 
 	#if arguments["-P"]
 
