@@ -1,3 +1,8 @@
+import distorm3
+import getopt, sys
+import hashlib
+import struct
+
 class PartitionEntry:
     def __init__(self, data):
         self.BootableFlag = struct.unpack("<c", data[:1])[0]
