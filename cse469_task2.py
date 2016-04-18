@@ -1,7 +1,26 @@
-import distorm3
-import getopt, sys
+"""
+Usage: cse469_task2.py FILE
+"""
+
+import sys
 import hashlib
 import struct
+import binascii
+import docopt
+
+global EXECUTABLE_CODE, FIRST_PARTITION, SECOND_PARTITION, THIRD_PARTITION, FOURTH_PARTITION, BOOT_SIG
+
+arguments = docopt.docopt(__doc__)
+
+with open(arguments['FILE'], 'rb') as f:
+	content=f.read()
+	EXECUTABLE_CODE = binascii.hexlify(content[0:446])
+	FIRST_PARTITION = binascii.hexlify(content[446:462])
+	SECOND_PARTITION = binascii.hexlify(content[462:478])
+	THIRD_PARTITION = binascii.hexlify(content[478:494])
+	FOURTH_PARTITION = binascii.hexlify(content[494:510])
+	BOOT_SIG = binascii.hexlify(content[510:512])
+
 
 PartitionTypes = { 
     0x00:"Empty",
