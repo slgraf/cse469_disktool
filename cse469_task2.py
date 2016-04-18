@@ -38,20 +38,20 @@ PartitionTypes = {
     "0xa5":"FreeBSD and BSD/386",
     "0xa6":"OpenBSD",
     "0xa9":"NetBSD",
-    "0xc7":"Corrupted NTFS volume/stripe set"
+    "0xc7":"Corrupted NTFS volume/stripe set",
     "0xeb":"BeOS"
 }
 
-class PartitionEntry(self, data):
-	def __init__(self):   
-	    self.state_of_partition = data[:1]
-	    self.beg_head = data[1:2]
-	    self.beg_sec = data[2:4]
-	    self.type_par = PartitionType[data[4:5]]
-	    self.end_head = data[5:6]
-	    self.end_sec = data[6:8]
-	    self.num_sec_MBR = data[8:12]
-	    self.num_sec_par = data[12:16]
+class PartitionEntry:
+	def __init__(self, data):   
+	    self.state_of_partition = data[:2]
+	    self.beg_head = data[2:4]
+	    self.beg_sec = data[4:8]
+	    self.type_par = data[8:10]
+	    self.end_head = data[10:12]
+	    self.end_sec = data[12:16]
+	    self.num_sec_MBR = data[16:24]
+	    self.num_sec_par = data[24:32]
 
 def starting_sec(data):
     hex1 = data[:2]
@@ -92,4 +92,26 @@ if __name__ == '__main__':
 	partition2 = PartitionEntry(SECOND_PARTITION)
 	partition3 = PartitionEntry(THIRD_PARTITION)
 	partition4 = PartitionEntry(FOURTH_PARTITION)
-	print(partition1.type_par)
+
+	partitions=[partition1, partition2, partition3, partition4]
+
+	for partition in partitions:
+		to_hex='0x{0}'
+		type_partition = PartitionTypes[to_hex.format(partition.type_par)]
+		start_sector = int(to_hex.format(partition.beg_sec), 16)
+		end_sector = int(to_hex.format(partition.end_sec), 16)
+		size_partition = end_sector - start_sector
+		print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, size_partition)
+
+
+
+
+
+
+
+
+
+
+
+
+
