@@ -8,19 +8,8 @@ import struct
 import binascii
 import docopt
 
+# global variables
 global EXECUTABLE_CODE, FIRST_PARTITION, SECOND_PARTITION, THIRD_PARTITION, FOURTH_PARTITION, BOOT_SIG
-
-arguments = docopt.docopt(__doc__)
-
-with open(arguments['FILE'], 'rb') as f:
-	content=f.read()
-	EXECUTABLE_CODE = binascii.hexlify(content[0:446])
-	FIRST_PARTITION = binascii.hexlify(content[446:462])
-	SECOND_PARTITION = binascii.hexlify(content[462:478])
-	THIRD_PARTITION = binascii.hexlify(content[478:494])
-	FOURTH_PARTITION = binascii.hexlify(content[494:510])
-	BOOT_SIG = binascii.hexlify(content[510:512])
-
 
 PartitionTypes = { 
     0x00:"Empty",
@@ -85,4 +74,16 @@ def size_of_par(data):
     binary_rep2 = ( bin(int(final_hex, scale))[2:]).zfill(num_of_bits2)
     size_par = int(binary_rep2, 2)
 
+
+if __name__ == '__main__':
+	arguments = docopt.docopt(__doc__)
+
+	with open(arguments['FILE'], 'rb') as f:
+		content=f.read()
+		EXECUTABLE_CODE = binascii.hexlify(content[0:446])
+		FIRST_PARTITION = binascii.hexlify(content[446:462])
+		SECOND_PARTITION = binascii.hexlify(content[462:478])
+		THIRD_PARTITION = binascii.hexlify(content[478:494])
+		FOURTH_PARTITION = binascii.hexlify(content[494:510])
+		BOOT_SIG = binascii.hexlify(content[510:512])
 
