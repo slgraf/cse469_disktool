@@ -1,4 +1,7 @@
-"""Usage: address4forensics.py  -L [-p address] [-c address]
+"""
+Usage: 	address4forensics.py  -L [-b offset] [-B [-s bytes]] [-p address] [-c address -k sectors -r sectors -t tables -f sectors]
+	address4forensics.py -P [-b offset] [-B [-s bytes]] [-l address] [-c address -k sectors -r sectors -t tables -f sectors]
+	address4forensics.py -C [-b offset] [-B [-s bytes]] [-l address] [-p address]
 	
 -L, --logical
 -P, --physical
@@ -14,6 +17,7 @@
 -t tables, --fat-tables=tables
 -f sectors, --fat-length=sectors
 """
+
 import docopt
 
 debug=True
@@ -21,7 +25,8 @@ debug=True
 def cmd_logical():
 	if arguments['--physical-known']:
 		print '_physical-known'
-		print int(arguments['--partition-known'])
+		print int(arguments['--physical-known'])
+		print
 	elif arguments['--cluster-known'] and arguments['--cluster-size'] and arguments['--reserved'] and arguments['--fat-tables'] and arguments['--fat-length']:
 		pass
 

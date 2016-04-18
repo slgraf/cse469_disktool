@@ -1,2 +1,6 @@
 # ignore compiled python scripts
 *.pyc
+
+# ignore test_imgs dir
+test_imgs/*
+
