@@ -3,6 +3,7 @@ Usage: 	address4forensics.py  -L [-b offset] [-B [-s bytes]] [-p address] [-c ad
 	address4forensics.py -P [-b offset] [-B [-s bytes]] [-l address] [-c address -k sectors -r sectors -t tables -f sectors]
 	address4forensics.py -C [-b offset] [-B [-s bytes]] [-l address] [-p address]
 	
+-h, --help
 -L, --logical
 -P, --physical
 -C, --cluster
@@ -21,23 +22,41 @@ Usage: 	address4forensics.py  -L [-b offset] [-B [-s bytes]] [-p address] [-c ad
 import docopt
 
 debug=True
-# how does --byte-address change things?
+
 def cmd_logical():
 	if arguments['--physical-known']:
 		print '_physical-known'
+		p_address = int(arguments['--physical-known'])
+		offset = 0
 		if arguments['--partition-start'] is not None:
-			address=int(arguments['--physical-known'])
-			offset=int(arguments['--partition-start'])
-			address-=offset
-			return address
-		else:
-			return int(arguments['--physical-known'])
+			offset = int(arguments['--partition-start'])
+		if arguments['--byte-address']:
+			sector_sz = 512
+			if arguments['--sector-size'] is not None:
+				sector_sz = int(arguments['--sector-size'])
+			return sector_sz*(p_address-offset)
+		return p_address-offset
+
 	elif arguments['--cluster-known'] and arguments['--cluster-size'] and arguments['--reserved'] and arguments['--fat-tables'] and arguments['--fat-length']:
 		# use CHS and what not to calc
-		pass
+		print '_cluster-known'
+		c_address = int(arguments['--cluster-known'])
+		c_sz = int(arguments['--cluster-size'])
+		reserved_sec = int(arguments['--reserved'])
+		fat_tables = int(arguments['--fat-tables'])
+		fat_length = int(arguments['--fat-length'])
+
+		address = c_address - (c_sz*reserved_sec*fat_tables*fat_length)
+		if arguments['--byte-address']:
+			sector_sz = 512
+			if arguments['--sector-size'] is not None:
+				sector_sz = int(arguments['--sector-size'])
+			return address*sector_sz
+		return address
 
 def cmd_physical():
 	if arguments['--logical-known']:
+		print '_logical-known'
 		address=int(arguments['--logical-known'])
 		offset=0
 		if arguments['--partition-start'] is not None:
@@ -45,13 +64,16 @@ def cmd_physical():
 		return address+offset
 	elif arguments['--cluster-known'] and arguments['--cluster-size'] and arguments['--reserved'] and arguments['--fat-tables'] and arguments['--fat-length']:
 		# use CHS and what not to calc
+		print '_cluster-known'
 		pass
 	
 
 def cmd_cluster():
 	if arguments['--physical-known']:
+		print '_physical-known'
 		p_address=int(arguments['--physical-known'])
 	elif arguments['logical-known']:
+		print '_logical-known'
 		l_address=int(arguments['--logical-known'])
 
 
