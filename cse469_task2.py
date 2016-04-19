@@ -10,7 +10,7 @@ import binascii
 import docopt
 
 # global variables
-global EXECUTABLE_CODE, FIRST_PARTITION, SECOND_PARTITION, THIRD_PARTITION, FOURTH_PARTITION, BOOT_SIG
+global EXECUTABLE_CODE_MBR, FIRST_PARTITION_MBR, SECOND_PARTITION_MBR, THIRD_PARTITION_MBR, FOURTH_PARTITION_MBR, BOOT_SIG_MBR
 
 PartitionTypes = { 
     "0x00":"Empty",
@@ -43,7 +43,7 @@ PartitionTypes = {
     "0xeb":"BeOS"
 }
 
-class PartitionEntry:
+class PartitionEntryMBR:
 	def __init__(self, data):   
 	    self.state_of_partition = data[:2]
 	    self.beg_head = data[2:4]
@@ -83,19 +83,19 @@ if __name__ == '__main__':
 
 	with open(arguments['FILE'], 'rb') as f:
 		content=f.read()
-		EXECUTABLE_CODE = binascii.hexlify(content[0:446])
-		FIRST_PARTITION = binascii.hexlify(content[446:462])
-		SECOND_PARTITION = binascii.hexlify(content[462:478])
-		THIRD_PARTITION = binascii.hexlify(content[478:494])
-		FOURTH_PARTITION = binascii.hexlify(content[494:510])
-		BOOT_SIG = binascii.hexlify(content[510:512])
+		EXECUTABLE_CODE_MBR = binascii.hexlify(content[0:446])
+		FIRST_PARTITION_MBR = binascii.hexlify(content[446:462])
+		SECOND_PARTITION_MBR = binascii.hexlify(content[462:478])
+		THIRD_PARTITION_MBR = binascii.hexlify(content[478:494])
+		FOURTH_PARTITION_MBR = binascii.hexlify(content[494:510])
+		BOOT_SIG_MBR = binascii.hexlify(content[510:512])
 
-	partition1 = PartitionEntry(FIRST_PARTITION)
-	partition2 = PartitionEntry(SECOND_PARTITION)
-	partition3 = PartitionEntry(THIRD_PARTITION)
-	partition4 = PartitionEntry(FOURTH_PARTITION)
+	partition1_MBR = PartitionEntry(FIRST_PARTITION)
+	partition2_MBR = PartitionEntry(SECOND_PARTITION)
+	partition3_MBR = PartitionEntry(THIRD_PARTITION)
+	partition4_MBR = PartitionEntry(FOURTH_PARTITION)
 
-	partitions=[partition1, partition2, partition3, partition4]
+	partitions=[partition1_MBR, partition2_MBR, partition3_MBR, partition4_MBR]
 
 	for partition in partitions:
 		to_hex='0x{0}'
