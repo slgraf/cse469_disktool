@@ -1,3 +1,4 @@
+# uses python 2.7.11
 """
 Usage: cse469_task2.py FILE
 """
@@ -52,6 +53,7 @@ class PartitionEntry:
 	    self.end_sec = data[12:16]
 	    self.num_sec_MBR = data[16:24]
 	    self.num_sec_par = data[24:32]
+        # self.fat16_32 = True/False
 
 def starting_sec(data):
     hex1 = data[:2]
@@ -102,6 +104,15 @@ if __name__ == '__main__':
 		end_sector = int(to_hex.format(partition.end_sec), 16)
 		size_partition = end_sector - start_sector
 		print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, size_partition)
+
+    for partition in partitions:
+        # calculate apporpriate information
+        # print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.beg_sec, partition.end_sec, partition.sz)
+        # print 'Sectors per cluster: {0} sectors'.format(partition.)
+        # print 'FAT area:    Start sector: {0} Ending sector{1}'.format()
+        # print '# of FATs: {0}'.format(partition.)
+        # print 'The size of each FAT: {0} sectors'.format(partition.)
+        # print 'The first sector of cluster 2: {0} sectors'.format()
 
 
 
