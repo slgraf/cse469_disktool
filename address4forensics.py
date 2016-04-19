@@ -18,10 +18,7 @@ Usage: 	address4forensics.py  -L [-b offset] [-B [-s bytes]] [-p address] [-c ad
 -t tables, --fat-tables=tables
 -f sectors, --fat-length=sectors
 """
-
 import docopt
-
-debug=True
 
 def cmd_logical():
 	if arguments['--physical-known']:
@@ -39,21 +36,20 @@ def cmd_logical():
 
 	elif arguments['--cluster-known'] and arguments['--cluster-size'] and arguments['--reserved'] and arguments['--fat-tables'] and arguments['--fat-length']:
 		# use CHS and what not to calc
-		# print '_cluster-known'
-		# c_address = int(arguments['--cluster-known'])
-		# c_sz = int(arguments['--cluster-size'])
-		# reserved_sec = int(arguments['--reserved'])
-		# fat_tables = int(arguments['--fat-tables'])
-		# fat_length = int(arguments['--fat-length'])
+		print '_cluster-known'
+		c_address = int(arguments['--cluster-known'])
+		c_sz = int(arguments['--cluster-size'])
+		reserved_sec = int(arguments['--reserved'])
+		fat_tables = int(arguments['--fat-tables'])
+		fat_length = int(arguments['--fat-length'])
+		offset=1
 
-		# address = c_address - (c_sz*reserved_sec*fat_tables*fat_length)
-		# if arguments['--byte-address']:
-		# 	sector_sz = 512
-		# 	if arguments['--sector-size'] is not None:
-		# 		sector_sz = int(arguments['--sector-size'])
-		# 	return address*sector_sz
-		# return address
-		pass
+		if arguments['--byte-address']:
+			offset = 512
+			if arguments['--sector-size']:
+				offset = int(arguments['--sector-size'])
+
+		return ((c_address*c_sz)+reserved_sec+(fat_tables*fat_length)-2)*offset
 
 def cmd_physical():
 	if arguments['--logical-known']:
@@ -68,12 +64,24 @@ def cmd_physical():
 				sector_sz = int(arguments['--sector-size'])
 			return sector_sz*(p_address-offset)
 		return address+offset
+
 	elif arguments['--cluster-known'] and arguments['--cluster-size'] and arguments['--reserved'] and arguments['--fat-tables'] and arguments['--fat-length']:
 		# use CHS and what not to calc
 		print '_cluster-known'
-		pass
-	
+		c_address = int(arguments['--cluster-known'])
+		c_sz = int(arguments['--cluster-size'])
+		reserved_sec = int(arguments['--reserved'])
+		fat_tables = int(arguments['--fat-tables'])
+		fat_length = int(arguments['--fat-length'])
+		offset=1
 
+		if arguments['--byte-address']:
+			offset = 512
+			if arguments['--sector-size']:
+				offset = int(arguments['--sector-size'])
+
+		return ((c_address*c_sz)+reserved_sec+(fat_tables*fat_length)-2)*offset
+	
 def cmd_cluster():
 	address = None
 	sector_sz = 1
@@ -92,8 +100,7 @@ def cmd_cluster():
 
 if __name__ == '__main__':
 	arguments = docopt.docopt(__doc__)
-	if debug:
-		print 'arguments:\n{0}'.format(arguments)
+
 	if arguments['--logical']:
 		print '_logical'
 		if arguments['--cluster-known'] or arguments['--physical-known']:
@@ -107,28 +114,4 @@ if __name__ == '__main__':
 		print '_physical'
 		if arguments['--logical-known'] or arguments['--cluster-known']:
 			cmd_physical()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
