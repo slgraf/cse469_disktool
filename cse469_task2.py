@@ -55,6 +55,39 @@ class PartitionEntryMBR:
 	    self.num_sec_par = data[24:32]
         # self.fat16_32 = True/False
 
+class PartitionEntryVBR:
+	def __init__(self, data):
+		self.bootCode = data[:4]
+		self.FAT_name = data[4:20]
+		self.byte_per_sec = data[20:24]
+		self.sec_per_clus = data[24:26]
+		self.size_in_sec = data[26:30]
+		self.num_FAT = data[30:32]
+		self.num_files_root = data[32:36]
+		self.bit16_num_sec = data[36:40]
+		self.med_type = data[40:42]
+		self.bit16_size_sec = data[42:46]
+		self.sec_per_track = data[46:50]
+		self.num_heads = data[50:54]
+		self.num_sec_b4_start = data[54:62]
+		self.bit32_num_sec = data[62: 72]
+
+#takes in filename, opens and parses through it
+def MD5(filename):
+	hashcode = hashlib.new("MD5")
+	with open(filename, "rb") as file:
+		for part in iter(lambda: file.read(4096), b""):
+			hashcode.update(part)
+	return hashcode.hexdigest()
+
+#takes in filename, opens and parses through it
+def SHA1(filename):
+	hashcode = hashlib.new("SHA1")
+	with open(filename, "rb") as file:
+		for part in iter(lambda: file.read(4096), b""):
+			hashcode.update(part)
+	return hashcode.hexdigest()
+
 def starting_sec(data):
     hex1 = data[:2]
     hex2 = data[2:4]
