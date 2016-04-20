@@ -179,7 +179,7 @@ def main():
             to_hex='0x{0}'.format(partition.type_par)
             if  to_hex == '0x04' or to_hex == '0x06' or to_hex == '0x0b' or to_hex == '0x0c':
                 sz = getVBRsz(to_hex)
-                beg = 512*partition.beg_sec
+                beg = 512*int('0x{0}'.format(partition.beg_sec), 16)
                 end = beg+sz
 
                 tmp = PartitionEntryVBR(binascii.hexlify(content[beg:end]))
@@ -202,10 +202,10 @@ def main():
     for partition in partitions_VBR:
         # calculate appropriate information
         ra_end_sec = partition.ra_beg_sec+partition.ra_size_in_sec
-        fat_beg_sec = ra_end_sec+1
-        fat_end_sec = fat_beg_sec+(partition.num_FAT*partition.fat_bit16_size_sec)
+        fat_beg_sec = int('0x{0}'.format(ra_end_sec), 16)+1
+        fat_end_sec = fat_beg_sec+(int('0x{0}'.format(partition.num_FAT), 16)*int('0x{0}'.format(partition.fat_bit16_size_sec), 16))
 
-        print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.ra_beg_sec, ra_end_sec, partition.size_in_sec_res)
+        print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.ra_beg_sec, ra_end_sec, partition.ra_size_in_sec)
         print 'Sectors per cluster: {0} sectors'.format(partition.sec_per_clus)
         print 'FAT area:    Start sector: {0} Ending sector{1}'.format(fat_beg_sec, fat_end_sec)
         print '# of FATs: {0}'.format(partition.num_FAT)
