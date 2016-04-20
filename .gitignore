@@ -1,6 +1,9 @@
 # ignore compiled python scripts
 *.pyc
 
+# ignore any generated txt files
+*.txt
+
 # ignore test_img directory
 test_imgs/*
 # ignore any img files in cur dir
