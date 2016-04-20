@@ -8,6 +8,7 @@ import hashlib
 import struct
 import binascii
 import docopt
+import os
 
 # global variables
 global EXECUTABLE_CODE_MBR, FIRST_PARTITION_MBR, SECOND_PARTITION_MBR, THIRD_PARTITION_MBR, FOURTH_PARTITION_MBR, BOOT_SIG_MBR
@@ -72,6 +73,9 @@ class PartitionEntryVBR:
 		self.num_sec_b4_start = data[54:62]
 		self.bit32_num_sec = data[62: 72]
 
+def BARS():
+	print "="*(50)
+
 #takes in filename, opens and parses through it
 def MD5(filename):
 	hashcode = hashlib.new("MD5")
@@ -98,6 +102,7 @@ def starting_sec(data):
     num_of_bits2 = len(final_hex)*4
     binary_rep2 = ( bin(int(final_hex, scale))[2:]).zfill(num_of_bits2)
     starting_sector = int(binary_rep2, 2)
+    return starting_sector
 
 def size_of_par(data):
     hex1 = data[:2]
@@ -109,10 +114,14 @@ def size_of_par(data):
     num_of_bits2 = len(final_hex)*4
     binary_rep2 = ( bin(int(final_hex, scale))[2:]).zfill(num_of_bits2)
     size_par = int(binary_rep2, 2)
+    return size_par
 
 
 if __name__ == '__main__':
 	arguments = docopt.docopt(__doc__)
+
+	#MD5(arguments['FILE'])
+	#SHA1(arguments['FILE'])
 
 	with open(arguments['FILE'], 'rb') as f:
 		content=f.read()
@@ -130,22 +139,37 @@ if __name__ == '__main__':
 
 	partitions=[partition1_MBR, partition2_MBR, partition3_MBR, partition4_MBR]
 
+	#///////////////////////////////////////
+	#COMMENT THESE OUT TO RUN FASTER
+	#///////////////////////////////////////
+	MD5hash = MD5(arguments['FILE'])
+	SHA1hash = SHA1(arguments['FILE'])
+
+	print "MD5: {0}".format(MD5hash)
+	print ""
+	print "SHA1: {0}".format(SHA1hash)
+
+	BARS()
 	for partition in partitions:
 		to_hex='0x{0}'
 		type_partition = PartitionTypes[to_hex.format(partition.type_par)]
-		start_sector = int(to_hex.format(partition.beg_sec), 16)
-		end_sector = int(to_hex.format(partition.end_sec), 16)
-		size_partition = end_sector - start_sector
-		print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, size_partition)
+		#start_sector = int(to_hex.format(partition.beg_sec), 16)
+		start_sector = starting_sec(partition.num_sec_MBR)
+		#end_sector = int(to_hex.format(partition.end_sec), 16)
+		size_partition = size_of_par(partition.num_sec_par)
+		print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, str(start_sector).zfill(10), str(size_partition).zfill(10))
+	BARS()
 
-    # for partition in partitions:
-        # calculate apporpriate information
-        # print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.beg_sec, partition.end_sec, partition.sz)
-        # print 'Sectors per cluster: {0} sectors'.format(partition.)
-        # print 'FAT area:    Start sector: {0} Ending sector{1}'.format()
-        # print '# of FATs: {0}'.format(partition.)
-        # print 'The size of each FAT: {0} sectors'.format(partition.)
-        # print 'The first sector of cluster 2: {0} sectors'.format()
+	file_title = arguments['FILE']
+	file_title_list = file_title.split('.')
+	file_title = file_title_list[0]
+	file1 = "MD5-{0}.txt".format(file_title)
+	file2 = "SHA1-{0}.txt".format(file_title)
+	with open(file1, 'w') as f:
+		f.write(MD5hash)
+
+	with open(file2, 'w') as f:
+		f.write(SHA1hash)
 
 
 

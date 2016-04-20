@@ -38,7 +38,7 @@ def hex_to_date(hex1):
 	int_month = int(month, 2)
 	int_day = int(day, 2)
 
-	print ("Date: ",months[int_month]," ",int_day,", ",int_year)
+	print "Date: {0} {1}, {2}".format(months[int_month], int_day, int_year)
 
 #moving on to the conversion to time from hex
 #this input comes in from a .txt file
@@ -61,9 +61,9 @@ def hex_to_time(hex2):
 
 	if int_hour>12:
 		int_hour = int_hour - 12
-		print("Time: ", int_hour, ":", int_minute, ":", int_second, "PM")
+		print "Time: {0}:{1}:{2} PM".format(int_hour, int_minute, int_second)
 	else:
-		print("Time: ", int_hour, ":", int_minute, ":", int_second, "AM")
+		print "Time: {0}:{1}:{2} AM".format(int_hour, int_minute, int_second)
 
 #hex_to_time("0x53f6")
 #hex_to_date("0x3a81")
