@@ -123,10 +123,10 @@ if __name__ == '__main__':
 		FOURTH_PARTITION_MBR = binascii.hexlify(content[494:510])
 		BOOT_SIG_MBR = binascii.hexlify(content[510:512])
 
-	partition1_MBR = PartitionEntry(FIRST_PARTITION)
-	partition2_MBR = PartitionEntry(SECOND_PARTITION)
-	partition3_MBR = PartitionEntry(THIRD_PARTITION)
-	partition4_MBR = PartitionEntry(FOURTH_PARTITION)
+	partition1_MBR = PartitionEntryMBR(FIRST_PARTITION_MBR)
+	partition2_MBR = PartitionEntryMBR(SECOND_PARTITION_MBR)
+	partition3_MBR = PartitionEntryMBR(THIRD_PARTITION_MBR)
+	partition4_MBR = PartitionEntryMBR(FOURTH_PARTITION_MBR)
 
 	partitions=[partition1_MBR, partition2_MBR, partition3_MBR, partition4_MBR]
 
@@ -138,7 +138,7 @@ if __name__ == '__main__':
 		size_partition = end_sector - start_sector
 		print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, size_partition)
 
-    for partition in partitions:
+    # for partition in partitions:
         # calculate apporpriate information
         # print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.beg_sec, partition.end_sec, partition.sz)
         # print 'Sectors per cluster: {0} sectors'.format(partition.)
