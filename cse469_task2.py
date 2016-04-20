@@ -54,24 +54,29 @@ class PartitionEntryMBR:
 	    self.end_sec = data[12:16]
 	    self.num_sec_MBR = data[16:24]
 	    self.num_sec_par = data[24:32]
-        # self.fat16_32 = True/False
 
 class PartitionEntryVBR:
 	def __init__(self, data):
+        self.ra_beg_sec = None
 		self.bootCode = data[:4]
 		self.FAT_name = data[4:20]
 		self.byte_per_sec = data[20:24]
 		self.sec_per_clus = data[24:26]
-		self.size_in_sec = data[26:30]
+		self.ra_size_in_sec = data[26:30]
 		self.num_FAT = data[30:32]
 		self.num_files_root = data[32:36]
 		self.bit16_num_sec = data[36:40]
 		self.med_type = data[40:42]
-		self.bit16_size_sec = data[42:46]
+		self.fat_bit16_size_sec = data[42:46]
 		self.sec_per_track = data[46:50]
 		self.num_heads = data[50:54]
 		self.num_sec_b4_start = data[54:62]
-		self.bit32_num_sec = data[62: 72]
+		self.bit32_num_sec = data[62:72]
+        try:
+            self.fat_bit16_size_sec = data[73:78]
+        except: pass
+
+
 
 def BARS():
 	print "="*(50)
@@ -116,70 +121,97 @@ def size_of_par(data):
     size_par = int(binary_rep2, 2)
     return size_par
 
+def getVBRsz(type_par):
+    if type_par == '0x04' or type_par == '0x06':
+        return 36
+    else: 
+        return 512
+
+def main():
+    arguments = docopt.docopt(__doc__)
+    partition1_MBR = None
+    partition2_MBR = None
+    partition3_MBR = None
+    partition4_MBR = None
+
+    partitions_MBR = []
+    partitions_VBR = []
+
+    with open(arguments['FILE'], 'rb') as f:
+        content=f.read()
+        EXECUTABLE_CODE_MBR = binascii.hexlify(content[0:446])
+        FIRST_PARTITION_MBR = binascii.hexlify(content[446:462])
+        SECOND_PARTITION_MBR = binascii.hexlify(content[462:478])
+        THIRD_PARTITION_MBR = binascii.hexlify(content[478:494])
+        FOURTH_PARTITION_MBR = binascii.hexlify(content[494:510])
+        BOOT_SIG_MBR = binascii.hexlify(content[510:512])
+
+        partition1_MBR = PartitionEntryMBR(FIRST_PARTITION_MBR)
+        partition2_MBR = PartitionEntryMBR(SECOND_PARTITION_MBR)
+        partition3_MBR = PartitionEntryMBR(THIRD_PARTITION_MBR)
+        partition4_MBR = PartitionEntryMBR(FOURTH_PARTITION_MBR)
+
+        partitions_MBR=[partition1_MBR, partition2_MBR, partition3_MBR, partition4_MBR]
+
+        #///////////////////////////////////////
+        #COMMENT THESE OUT TO RUN FASTER
+        #///////////////////////////////////////
+
+        #MD5 SHA1 Requirements
+        MD5hash = MD5(arguments['FILE'])
+        SHA1hash = SHA1(arguments['FILE'])
+        print "MD5: {0}".format(MD5hash)
+        print ""
+        print "SHA1: {0}".format(SHA1hash)
+
+        file_title = arguments['FILE']
+        file_title_list = file_title.split('.')
+        file_title = file_title_list[0]
+        file1 = "MD5-{0}.txt".format(file_title)
+        file2 = "SHA1-{0}.txt".format(file_title)
+        with open(file1, 'w') as f:
+            f.write(MD5hash)
+        with open(file2, 'w') as f:
+            f.write(SHA1hash)
+
+
+        for partition in partitions_MBR:
+            to_hex='0x{0}'.format(partition.type_par)
+            if  to_hex == '0x04' or to_hex == '0x06' or to_hex == '0x0b' or to_hex == '0x0c':
+                sz = getVBRsz(to_hex)
+                beg = 512*partition.beg_sec
+                end = beg+sz
+
+                tmp = PartitionEntryVBR(binascii.hexlify(content[beg:end]))
+                tmp.ra_beg_sec = partition.beg_sec
+
+                partitions_VBR.append(tmp)
+            else:
+                pass
+                # create a tuple. gotta match up partition BS
+    BARS()
+    for partition in partitions_MBR:
+        to_hex='0x{0}'
+        type_partition = PartitionTypes[to_hex.format(partition.type_par)]
+        start_sector = int(to_hex.format(partition.beg_sec), 16)
+        end_sector = int(to_hex.format(partition.end_sec), 16)
+        size_partition = end_sector - start_sector
+        print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, size_partition)
+    BARS()
+
+    for partition in partitions_VBR:
+        # calculate appropriate information
+        ra_end_sec = partition.ra_beg_sec+partition.ra_size_in_sec
+        fat_beg_sec = ra_end_sec+1
+        fat_end_sec = fat_beg_sec+(partition.num_FAT*partition.fat_bit16_size_sec)
+
+        print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.ra_beg_sec, ra_end_sec, partition.size_in_sec_res)
+        print 'Sectors per cluster: {0} sectors'.format(partition.sec_per_clus)
+        print 'FAT area:    Start sector: {0} Ending sector{1}'.format(fat_beg_sec, fat_end_sec)
+        print '# of FATs: {0}'.format(partition.num_FAT)
+        print 'The size of each FAT: {0} sectors'.format(partition.fat_bit16_size_sec)
+        print 'The first sector of cluster 2: {0} sectors'.format(partition.num_sec_b4_start)
 
 if __name__ == '__main__':
-	arguments = docopt.docopt(__doc__)
-
-	#MD5(arguments['FILE'])
-	#SHA1(arguments['FILE'])
-
-	with open(arguments['FILE'], 'rb') as f:
-		content=f.read()
-		EXECUTABLE_CODE_MBR = binascii.hexlify(content[0:446])
-		FIRST_PARTITION_MBR = binascii.hexlify(content[446:462])
-		SECOND_PARTITION_MBR = binascii.hexlify(content[462:478])
-		THIRD_PARTITION_MBR = binascii.hexlify(content[478:494])
-		FOURTH_PARTITION_MBR = binascii.hexlify(content[494:510])
-		BOOT_SIG_MBR = binascii.hexlify(content[510:512])
-
-	partition1_MBR = PartitionEntryMBR(FIRST_PARTITION_MBR)
-	partition2_MBR = PartitionEntryMBR(SECOND_PARTITION_MBR)
-	partition3_MBR = PartitionEntryMBR(THIRD_PARTITION_MBR)
-	partition4_MBR = PartitionEntryMBR(FOURTH_PARTITION_MBR)
-
-	partitions=[partition1_MBR, partition2_MBR, partition3_MBR, partition4_MBR]
-
-	#///////////////////////////////////////
-	#COMMENT THESE OUT TO RUN FASTER
-	#///////////////////////////////////////
-	MD5hash = MD5(arguments['FILE'])
-	SHA1hash = SHA1(arguments['FILE'])
-
-	print "MD5: {0}".format(MD5hash)
-	print ""
-	print "SHA1: {0}".format(SHA1hash)
-
-	BARS()
-	for partition in partitions:
-		to_hex='0x{0}'
-		type_partition = PartitionTypes[to_hex.format(partition.type_par)]
-		#start_sector = int(to_hex.format(partition.beg_sec), 16)
-		start_sector = starting_sec(partition.num_sec_MBR)
-		#end_sector = int(to_hex.format(partition.end_sec), 16)
-		size_partition = size_of_par(partition.num_sec_par)
-		print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, str(start_sector).zfill(10), str(size_partition).zfill(10))
-	BARS()
-
-	file_title = arguments['FILE']
-	file_title_list = file_title.split('.')
-	file_title = file_title_list[0]
-	file1 = "MD5-{0}.txt".format(file_title)
-	file2 = "SHA1-{0}.txt".format(file_title)
-	with open(file1, 'w') as f:
-		f.write(MD5hash)
-
-	with open(file2, 'w') as f:
-		f.write(SHA1hash)
-
-
-
-
-
-
-
-
-
-
-
-
+	main()
 
