@@ -69,19 +69,20 @@ def hex_to_time(hex2):
 #hex_to_date("0x3a81")
 
 #main code
-list_of_arg = (sys.argv)
 
-if list_of_arg[1] == "-T":
-	if list_of_arg[2] == "-h":
-		hex_to_time(list_of_arg[3])
-	elif list_of_arg[2] == "-f":
-		f = open(list_of_arg[3], 'r')
-		my_hex3 = f.read()
-		hex_to_time(my_hex3)
-elif list_of_arg[1] == "-D":
-	if list_of_arg[2] == "-h":
-		hex_to_date(list_of_arg[3])
-	elif list_of_arg[2] == "-f":
-		f = open(list_of_arg[3], 'r')
-		my_hex3 = f.read()
-		hex_to_time(my_hex3)
+if __name__ == '__main__':
+	list_of_arg = (sys.argv)
+	if list_of_arg[1] == "-T":
+		if list_of_arg[2] == "-h":
+			hex_to_time(list_of_arg[3])
+		elif list_of_arg[2] == "-f":
+			f = open(list_of_arg[3], 'r')
+			my_hex3 = f.read()
+			hex_to_time(my_hex3)
+	elif list_of_arg[1] == "-D":
+		if list_of_arg[2] == "-h":
+			hex_to_date(list_of_arg[3])
+		elif list_of_arg[2] == "-f":
+			f = open(list_of_arg[3], 'r')
+			my_hex3 = f.read()
+			hex_to_time(my_hex3)
