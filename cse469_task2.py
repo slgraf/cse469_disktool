@@ -57,7 +57,7 @@ class PartitionEntryMBR:
 
 class PartitionEntryVBR:
 	def __init__(self, data):
-        # self.ra_beg_sec = -1
+        self.ra_beg_sec = -1
 		self.bootCode = data[:4]
 		self.FAT_name = data[4:20]
 		self.byte_per_sec = data[20:24]
@@ -75,7 +75,11 @@ class PartitionEntryVBR:
         try:
             self.fat_bit16_size_sec = data[73:78]
         except: pass
-
+    # create function to_hex
+    # need to parse incoming data to int
+    # instead of casting it throught program
+    # become more efficient
+    # cleanup code
 
 
 def BARS():
