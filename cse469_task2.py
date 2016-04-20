@@ -57,7 +57,7 @@ class PartitionEntryMBR:
 
 class PartitionEntryVBR:
 	def __init__(self, data):
-        self.ra_beg_sec = None
+        # self.ra_beg_sec = -1
 		self.bootCode = data[:4]
 		self.FAT_name = data[4:20]
 		self.byte_per_sec = data[20:24]

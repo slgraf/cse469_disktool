@@ -3,4 +3,6 @@
 
 # ignore test_img directory
 test_imgs/*
+# ignore any img files in cur dir
+*.img
 
