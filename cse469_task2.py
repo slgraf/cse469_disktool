@@ -47,6 +47,7 @@ PartitionTypes = {
 class PartitionEntryMBR:
     def __init__(self, data):
         # print data
+        self.name = ''
         self.state_of_partition = self.to_int(data[:2])
         self.beg_head = self.to_int(data[2:4])
         self.beg_sec = self.to_int(data[4:8])
@@ -80,6 +81,8 @@ class PartitionEntryMBR:
 class PartitionEntryVBR:
     def __init__(self, data):
         # print data
+        self.name = ''
+        self.type_par = -1
         self.ra_beg_sec = -1
         self.bootCode = self.to_int(data[:6])
         self.FAT_name = self.to_int(data[6:22])
@@ -96,7 +99,7 @@ class PartitionEntryVBR:
         self.num_sec_b4_start = self.to_int(data[56:64])
         self.bit32_num_sec = self.to_int(data[64:72])
         if self.fat_bit16_size_sec == 0:
-            print 'I AM NONE'
+            # print 'I AM NONE'
             self.fat_bit16_size_sec = self.to_int(data[72:80])
 
     def to_int(self, num):
@@ -123,7 +126,7 @@ class PartitionEntryVBR:
 
 
 def BARS():
-	print "="*(65)
+	print "="*(85)
 
 #takes in filename, opens and parses through it
 def MD5(filename):
@@ -197,6 +200,11 @@ def main():
         partition3_MBR = PartitionEntryMBR(THIRD_PARTITION_MBR)
         partition4_MBR = PartitionEntryMBR(FOURTH_PARTITION_MBR)
 
+        partition1_MBR.name = 'Partition 0'
+        partition2_MBR.name = 'Partition 1'
+        partition3_MBR.name = 'Partition 2'
+        partition4_MBR.name = 'Partition 3'
+
         partitions_MBR=[partition1_MBR, partition2_MBR, partition3_MBR, partition4_MBR]
 
         #///////////////////////////////////////
@@ -229,6 +237,12 @@ def main():
 
                 tmp = PartitionEntryVBR(binascii.hexlify(content[beg:end]))
                 tmp.ra_beg_sec = (partition.num_sec_MBR)*512
+                tmp.name = partition.name
+
+                if to_hex == 0x04 or to_hex == 0x06:
+                    tmp.type_par = partition.type_par
+                else:
+                    tmp.type_par = partition.type_par
 
                 partitions_VBR.append(tmp)
 
@@ -244,21 +258,27 @@ def main():
 
     for partition in partitions_VBR:
         # calculate appropriate information
-        ra_end_sec = partition.ra_beg_sec+partition.ra_size_in_sec
+        ra_beg_sec = 0
+        ra_end_sec = partition.ra_size_in_sec-1
         fat_beg_sec = ra_end_sec+1
+        fat_end_sec = fat_beg_sec+partition.num_FAT*partition.fat_bit16_size_sec-1
 
-        # print type(fat_beg_sec)
-        # print type(partition.num_FAT)
-        # print type(partition.fat_bit16_size_sec)
+        sec_clus2 = 0
+        if partition.type_par == 0x0b or partition.type_par == 0x0c:
+            sec_clus2 = partition.ra_size_in_sec+(fat_end_sec-fat_beg_sec)
+        else:
+            sec_clus2 = partition.ra_size_in_sec+(fat_end_sec-fat_beg_sec)
 
-        fat_end_sec = fat_beg_sec+partition.num_FAT*partition.fat_bit16_size_sec
+        
 
-        print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.ra_beg_sec, ra_end_sec, partition.ra_size_in_sec)
+        print '{0}({1}):'.format(partition.name, PartitionTypes[partition.type_par])
+        print 'Reserved area: Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(ra_beg_sec, ra_end_sec, partition.ra_size_in_sec)
         print 'Sectors per cluster: {0} sectors'.format(partition.sec_per_clus)
-        print 'FAT area:    Start sector: {0} Ending sector {1}'.format(fat_beg_sec, fat_end_sec)
+        print 'FAT area: Start sector: {0} Ending sector {1}'.format(fat_beg_sec, fat_end_sec)
         print '# of FATs: {0}'.format(partition.num_FAT)
         print 'The size of each FAT: {0} sectors'.format(partition.fat_bit16_size_sec)
         print 'The first sector of cluster 2: {0} sectors'.format(partition.num_sec_b4_start)
+        BARS()
 
 if __name__ == '__main__':
 	main()
