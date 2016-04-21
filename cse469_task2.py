@@ -14,46 +14,49 @@ import os
 global EXECUTABLE_CODE_MBR, FIRST_PARTITION_MBR, SECOND_PARTITION_MBR, THIRD_PARTITION_MBR, FOURTH_PARTITION_MBR, BOOT_SIG_MBR
 
 PartitionTypes = { 
-    "0x00":"Empty",
-    "0x01":"DOS 12-bit FAT",
-    "0x04":"DOS 16-bit FAT for partitions larger than 32 MB",
-    "0x05":"Extended partition",
-    "0x06":"DOS 16-bit FAT for partitions larger than 32 MB",
-    "0x07":"NTFS",
-    "0x08":"AIX bootable partition",
-    "0x09":"AIX data partition",
-    "0x0b":"DOS 32-bit FAT",
-    "0x0c":"DOS 32-bit FAT for 13 support",
-    "0x17":"Hidden NTFS partition",
-    "0x1b":"Hidden FAT32 partition",
-    "0x1e":"Hidden VFAT partition",
-    "0x3c":"Partition Magic recovery partition",
-    "0x66":"Novell partition",
-    "0x67":"Novell partition",
-    "0x68":"Novell partition",
-    "0x69":"Novell partition",
-    "0x81":"Linux",
-    "0x82":"Solaris x86 or Linux Swap",
-    "0x83":"Linux native file system",
-    "0x86":"FAT16 volum/stripe set (Windows NT)",
-    "0x87":"High Performance File System",
-    "0xa5":"FreeBSD and BSD/386",
-    "0xa6":"OpenBSD",
-    "0xa9":"NetBSD",
-    "0xc7":"Corrupted NTFS volume/stripe set",
-    "0xeb":"BeOS"
+    0x00:"Empty",
+    0x01:"DOS 12-bit FAT",
+    0x04:"DOS 16-bit FAT for partitions larger than 32 MB",
+    0x05:"Extended partition",
+    0x06:"DOS 16-bit FAT for partitions larger than 32 MB",
+    0x07:"NTFS",
+    0x08:"AIX bootable partition",
+    0x09:"AIX data partition",
+    0x0b:"DOS 32-bit FAT",
+    0x0c:"DOS 32-bit FAT for 13 support",
+    0x17:"Hidden NTFS partition",
+    0x1b:"Hidden FAT32 partition",
+    0x1e:"Hidden VFAT partition",
+    0x3c:"Partition Magic recovery partition",
+    0x66:"Novell partition",
+    0x67:"Novell partition",
+    0x68:"Novell partition",
+    0x69:"Novell partition",
+    0x81:"Linux",
+    0x82:"Solaris x86 or Linux Swap",
+    0x83:"Linux native file system",
+    0x86:"FAT16 volum/stripe set (Windows NT)",
+    0x87:"High Performance File System",
+    0xa5:"FreeBSD and BSD/386",
+    0xa6:"OpenBSD",
+    0xa9:"NetBSD",
+    0xc7:"Corrupted NTFS volume/stripe set",
+    0xeb:"BeOS"
 }
 
 class PartitionEntryMBR:
-	def __init__(self, data):   
-	    self.state_of_partition = data[:2]
-	    self.beg_head = data[2:4]
-	    self.beg_sec = data[4:8]
-	    self.type_par = data[8:10]
-	    self.end_head = data[10:12]
-	    self.end_sec = data[12:16]
-	    self.num_sec_MBR = data[16:24]
-	    self.num_sec_par = data[24:32]
+    def __init__(self, data):
+        self.state_of_partition = self.to_int(data[:2])
+        self.beg_head = self.to_int(data[2:4])
+        self.beg_sec = self.to_int(data[4:8])
+        self.type_par = self.to_int(data[8:10])
+        self.end_head = self.to_int(data[10:12])
+        self.end_sec = self.to_int(data[12:16])
+        self.num_sec_MBR = self.to_int(data[16:24])
+        self.num_sec_par = self.to_int(data[24:32])
+    
+    def to_int(self, num):
+        return int('0x{0}'.format(num), 16)
 
 class PartitionEntryVBR:
     def __init__(self, data):
@@ -78,9 +81,6 @@ class PartitionEntryVBR:
 
     def to_int(self, num):
         return int('0x{0}'.format(num), 16)
-        # try:
-        #     self.fat_bit16_size_sec = data[73:78]
-        # except: pass
     # create function to_hex
     # need to parse incoming data to int
     # instead of casting it throught program
@@ -166,7 +166,6 @@ def main():
         #///////////////////////////////////////
         #COMMENT THESE OUT TO RUN FASTER
         #///////////////////////////////////////
-
         #MD5 SHA1 Requirements
         MD5hash = MD5(arguments['FILE'])
         SHA1hash = SHA1(arguments['FILE'])
@@ -186,25 +185,22 @@ def main():
 
 
         for partition in partitions_MBR:
-            to_hex='0x{0}'.format(partition.type_par)
-            if  to_hex == '0x04' or to_hex == '0x06' or to_hex == '0x0b' or to_hex == '0x0c':
+            to_hex = partition.type_par
+            if  to_hex == 0x04 or to_hex == 0x06 or to_hex == 0x0b or to_hex == 0x0c:
                 sz = getVBRsz(to_hex)
-                beg = 512*int('0x{0}'.format(partition.beg_sec), 16)
+                beg = 512*partition.beg_sec
                 end = beg+sz
 
                 tmp = PartitionEntryVBR(binascii.hexlify(content[beg:end]))
                 tmp.ra_beg_sec = partition.beg_sec
 
                 partitions_VBR.append(tmp)
-            else:
-                pass
-                # create a tuple. gotta match up partition BS
+
     BARS()
     for partition in partitions_MBR:
-        to_hex='0x{0}'
-        type_partition = PartitionTypes[to_hex.format(partition.type_par)]
-        start_sector = int(to_hex.format(partition.beg_sec), 16)
-        end_sector = int(to_hex.format(partition.end_sec), 16)
+        type_partition = PartitionTypes[partition.type_par]
+        start_sector = partition.beg_sec
+        end_sector = partition.end_sec
         size_partition = end_sector - start_sector
         print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, size_partition)
     BARS()
