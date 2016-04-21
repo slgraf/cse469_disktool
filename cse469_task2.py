@@ -79,23 +79,25 @@ class PartitionEntryMBR:
 
 class PartitionEntryVBR:
     def __init__(self, data):
+        # print data
         self.ra_beg_sec = -1
-        self.bootCode = self.to_int(data[:4])
-        self.FAT_name = self.to_int(data[4:20])
-        self.byte_per_sec = self.to_int(data[20:24])
-        self.sec_per_clus = self.to_int(data[24:26])
-        self.ra_size_in_sec = self.to_int(data[26:30])
-        self.num_FAT = self.to_int(data[30:32])
-        self.num_files_root = self.to_int(data[32:36])
-        self.bit16_num_sec = self.to_int(data[36:40])
-        self.med_type = self.to_int(data[40:42])
-        self.fat_bit16_size_sec = self.to_int(data[42:46])
-        self.sec_per_track = self.to_int(data[46:50])
-        self.num_heads = self.to_int(data[50:54])
-        self.num_sec_b4_start = self.to_int(data[54:62])
-        self.bit32_num_sec = self.to_int(data[62:72])
+        self.bootCode = self.to_int(data[:6])
+        self.FAT_name = self.to_int(data[6:22])
+        self.byte_per_sec = self.to_int(data[22:26])
+        self.sec_per_clus = self.to_int(data[26:28])
+        self.ra_size_in_sec = self.to_int(data[28:32])
+        self.num_FAT = self.to_int(data[32:34])
+        self.num_files_root = self.to_int(data[34:38])
+        self.bit16_num_sec = self.to_int(data[38:42])
+        self.med_type = self.to_int(data[42:44])
+        self.fat_bit16_size_sec = self.to_int(data[44:48])
+        self.sec_per_track = self.to_int(data[48:52])
+        self.num_heads = self.to_int(data[52:56])
+        self.num_sec_b4_start = self.to_int(data[56:64])
+        self.bit32_num_sec = self.to_int(data[64:72])
         if self.fat_bit16_size_sec == 0:
-            self.fat_bit16_size_sec = self.to_int(data[73:78])
+            print 'I AM NONE'
+            self.fat_bit16_size_sec = self.to_int(data[72:80])
 
     def to_int(self, num):
         if len(num) == 2:
@@ -112,7 +114,7 @@ class PartitionEntryVBR:
             b = num[2:4]
             c = num[4:6]
             d = num[6:8]
-            return int('0x{0}{1}{2}{3}'.format(c,d,b,a), 16)
+            return int('0x{0}{1}{2}{3}'.format(d,c,b,a), 16)
     # create function to_hex
     # need to parse incoming data to int
     # instead of casting it throught program
@@ -244,6 +246,11 @@ def main():
         # calculate appropriate information
         ra_end_sec = partition.ra_beg_sec+partition.ra_size_in_sec
         fat_beg_sec = ra_end_sec+1
+
+        # print type(fat_beg_sec)
+        # print type(partition.num_FAT)
+        # print type(partition.fat_bit16_size_sec)
+
         fat_end_sec = fat_beg_sec+partition.num_FAT*partition.fat_bit16_size_sec
 
         print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.ra_beg_sec, ra_end_sec, partition.ra_size_in_sec)
