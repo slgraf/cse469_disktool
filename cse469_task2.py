@@ -46,7 +46,7 @@ PartitionTypes = {
 
 class PartitionEntryMBR:
     def __init__(self, data):
-        print data
+        # print data
         self.state_of_partition = self.to_int(data[:2])
         self.beg_head = self.to_int(data[2:4])
         self.beg_sec = self.to_int(data[4:8])
@@ -56,26 +56,26 @@ class PartitionEntryMBR:
         self.num_sec_MBR = self.to_int(data[16:24])
         self.num_sec_par = self.to_int(data[24:32])
 
-        print self.num_sec_MBR
-        print '-----'
+        # print self.num_sec_MBR
+        # print '-----'
 
     
     def to_int(self, num):
         if len(num) == 2:
-            print 'here @2'
+            # print 'here @2'
             return int('0x{0}'.format(num), 16)
         elif len(num) == 4:
-            print 'here @4'
+            # print 'here @4'
             a = num[0:2]
             b = num[2:4]
-            return int('0x{0}{1}'.format(b, a), 16)
+            return int('0x{0}{1}'.format(b,a), 16)
         elif len(num) == 8:
-            print 'here @8'
+            # print 'here @8'
             a = num[0:2]
             b = num[2:4]
             c = num[4:6]
             d = num[6:8]
-            return int('0x{0}{1}{2}{3}'.format(c,d,b,a), 16)
+            return int('0x{0}{1}{2}{3}'.format(d,c,b,a), 16)
 
 class PartitionEntryVBR:
     def __init__(self, data):
@@ -94,21 +94,20 @@ class PartitionEntryVBR:
         self.num_heads = self.to_int(data[50:54])
         self.num_sec_b4_start = self.to_int(data[54:62])
         self.bit32_num_sec = self.to_int(data[62:72])
-        try:
+        if self.fat_bit16_size_sec == 0:
             self.fat_bit16_size_sec = self.to_int(data[73:78])
-        except: pass
 
     def to_int(self, num):
         if len(num) == 2:
-            print 'here @2'
+            # print 'here @2'
             return int('0x{0}'.format(num), 16)
         elif len(num) == 4:
-            print 'here @4'
+            # print 'here @4'
             a = num[0:2]
             b = num[2:4]
             return int('0x{0}{1}'.format(b, a), 16)
         elif len(num) == 8:
-            print 'here @8'
+            # print 'here @8'
             a = num[0:2]
             b = num[2:4]
             c = num[4:6]
@@ -165,7 +164,7 @@ def size_of_par(data):
     return size_par
 
 def getVBRsz(type_par):
-    if type_par == '0x04' or type_par == '0x06':
+    if type_par == 0x04 or type_par == 0x06:
         return 36
     else: 
         return 512
@@ -195,7 +194,6 @@ def main():
         partition2_MBR = PartitionEntryMBR(SECOND_PARTITION_MBR)
         partition3_MBR = PartitionEntryMBR(THIRD_PARTITION_MBR)
         partition4_MBR = PartitionEntryMBR(FOURTH_PARTITION_MBR)
-        exit()
 
         partitions_MBR=[partition1_MBR, partition2_MBR, partition3_MBR, partition4_MBR]
 
@@ -223,31 +221,30 @@ def main():
         for partition in partitions_MBR:
             to_hex = partition.type_par
             if  to_hex == 0x04 or to_hex == 0x06 or to_hex == 0x0b or to_hex == 0x0c:
-                sz = getVBRsz(to_hex)*2
-                beg = 512*partition.beg_sec*2
-                end = beg+sz
+                # sz = getVBRsz(to_hex)
+                beg = 512*(partition.num_sec_MBR)
+                end = beg+512
 
                 tmp = PartitionEntryVBR(binascii.hexlify(content[beg:end]))
-                tmp.ra_beg_sec = partition.beg_sec
+                tmp.ra_beg_sec = (partition.num_sec_MBR)*512
 
                 partitions_VBR.append(tmp)
 
     BARS()
     for partition in partitions_MBR:
         type_partition = PartitionTypes[partition.type_par]
-        start_sector = partition.beg_sec
-        end_sector = partition.end_sec
-        size_partition = end_sector - start_sector
-        print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, size_partition)
+        start_sector = partition.num_sec_MBR
+        end_sector = partition.num_sec_par
+        # size_partition = end_sector - start_sector
+        print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, end_sector)
     BARS()
+    # exit()
 
     for partition in partitions_VBR:
         # calculate appropriate information
-        print '-------'
-        print partition.ra_size_in_sec
         ra_end_sec = partition.ra_beg_sec+partition.ra_size_in_sec
-        fat_beg_sec = int('0x{0}'.format(ra_end_sec), 16)+1
-        fat_end_sec = fat_beg_sec+(int('0x{0}'.format(partition.num_FAT), 16)*int('0x{0}'.format(partition.fat_bit16_size_sec), 16))
+        fat_beg_sec = ra_end_sec+1
+        fat_end_sec = fat_beg_sec+partition.num_FAT*partition.fat_bit16_size_sec
 
         print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.ra_beg_sec, ra_end_sec, partition.ra_size_in_sec)
         print 'Sectors per cluster: {0} sectors'.format(partition.sec_per_clus)
