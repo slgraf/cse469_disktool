@@ -46,6 +46,7 @@ PartitionTypes = {
 
 class PartitionEntryMBR:
     def __init__(self, data):
+        print data
         self.state_of_partition = self.to_int(data[:2])
         self.beg_head = self.to_int(data[2:4])
         self.beg_sec = self.to_int(data[4:8])
@@ -54,9 +55,27 @@ class PartitionEntryMBR:
         self.end_sec = self.to_int(data[12:16])
         self.num_sec_MBR = self.to_int(data[16:24])
         self.num_sec_par = self.to_int(data[24:32])
+
+        print self.num_sec_MBR
+        print '-----'
+
     
     def to_int(self, num):
-        return int('0x{0}'.format(num), 16)
+        if len(num) == 2:
+            print 'here @2'
+            return int('0x{0}'.format(num), 16)
+        elif len(num) == 4:
+            print 'here @4'
+            a = num[0:2]
+            b = num[2:4]
+            return int('0x{0}{1}'.format(b, a), 16)
+        elif len(num) == 8:
+            print 'here @8'
+            a = num[0:2]
+            b = num[2:4]
+            c = num[4:6]
+            d = num[6:8]
+            return int('0x{0}{1}{2}{3}'.format(c,d,b,a), 16)
 
 class PartitionEntryVBR:
     def __init__(self, data):
@@ -80,7 +99,21 @@ class PartitionEntryVBR:
         except: pass
 
     def to_int(self, num):
-        return int('0x{0}'.format(num), 16)
+        if len(num) == 2:
+            print 'here @2'
+            return int('0x{0}'.format(num), 16)
+        elif len(num) == 4:
+            print 'here @4'
+            a = num[0:2]
+            b = num[2:4]
+            return int('0x{0}{1}'.format(b, a), 16)
+        elif len(num) == 8:
+            print 'here @8'
+            a = num[0:2]
+            b = num[2:4]
+            c = num[4:6]
+            d = num[6:8]
+            return int('0x{0}{1}{2}{3}'.format(c,d,b,a), 16)
     # create function to_hex
     # need to parse incoming data to int
     # instead of casting it throught program
@@ -89,7 +122,7 @@ class PartitionEntryVBR:
 
 
 def BARS():
-	print "="*(50)
+	print "="*(65)
 
 #takes in filename, opens and parses through it
 def MD5(filename):
@@ -139,6 +172,7 @@ def getVBRsz(type_par):
 
 def main():
     arguments = docopt.docopt(__doc__)
+
     partition1_MBR = None
     partition2_MBR = None
     partition3_MBR = None
@@ -149,6 +183,7 @@ def main():
 
     with open(arguments['FILE'], 'rb') as f:
         content=f.read()
+
         EXECUTABLE_CODE_MBR = binascii.hexlify(content[0:446])
         FIRST_PARTITION_MBR = binascii.hexlify(content[446:462])
         SECOND_PARTITION_MBR = binascii.hexlify(content[462:478])
@@ -160,6 +195,7 @@ def main():
         partition2_MBR = PartitionEntryMBR(SECOND_PARTITION_MBR)
         partition3_MBR = PartitionEntryMBR(THIRD_PARTITION_MBR)
         partition4_MBR = PartitionEntryMBR(FOURTH_PARTITION_MBR)
+        exit()
 
         partitions_MBR=[partition1_MBR, partition2_MBR, partition3_MBR, partition4_MBR]
 
@@ -187,8 +223,8 @@ def main():
         for partition in partitions_MBR:
             to_hex = partition.type_par
             if  to_hex == 0x04 or to_hex == 0x06 or to_hex == 0x0b or to_hex == 0x0c:
-                sz = getVBRsz(to_hex)
-                beg = 512*partition.beg_sec
+                sz = getVBRsz(to_hex)*2
+                beg = 512*partition.beg_sec*2
                 end = beg+sz
 
                 tmp = PartitionEntryVBR(binascii.hexlify(content[beg:end]))
@@ -207,6 +243,8 @@ def main():
 
     for partition in partitions_VBR:
         # calculate appropriate information
+        print '-------'
+        print partition.ra_size_in_sec
         ra_end_sec = partition.ra_beg_sec+partition.ra_size_in_sec
         fat_beg_sec = int('0x{0}'.format(ra_end_sec), 16)+1
         fat_end_sec = fat_beg_sec+(int('0x{0}'.format(partition.num_FAT), 16)*int('0x{0}'.format(partition.fat_bit16_size_sec), 16))
