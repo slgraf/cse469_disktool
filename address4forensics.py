@@ -82,7 +82,7 @@ def cmd_cluster():
 	offset = 0
 	if arguments['--physical-known']:
 		address=int(arguments['--physical-known'])
-	elif arguments['logical-known']:
+	elif arguments['--logical-known']:
 		address=int(arguments['--logical-known'])
 	if arguments['--byte-address']:
 		sector_sz = 512
