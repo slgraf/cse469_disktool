@@ -1,3 +1,4 @@
+#!/usr/local/bin/python
 # uses python 2.7.11
 """
 Usage: cse469_task2.py FILE
