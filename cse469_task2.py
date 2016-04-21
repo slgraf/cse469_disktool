@@ -46,7 +46,6 @@ PartitionTypes = {
 
 class PartitionEntryMBR:
     def __init__(self, data):
-        # print data
         self.name = ''
         self.state_of_partition = self.to_int(data[:2])
         self.beg_head = self.to_int(data[2:4])
@@ -57,21 +56,14 @@ class PartitionEntryMBR:
         self.num_sec_MBR = self.to_int(data[16:24])
         self.num_sec_par = self.to_int(data[24:32])
 
-        # print self.num_sec_MBR
-        # print '-----'
-
-    
     def to_int(self, num):
         if len(num) == 2:
-            # print 'here @2'
             return int('0x{0}'.format(num), 16)
         elif len(num) == 4:
-            # print 'here @4'
             a = num[0:2]
             b = num[2:4]
             return int('0x{0}{1}'.format(b,a), 16)
         elif len(num) == 8:
-            # print 'here @8'
             a = num[0:2]
             b = num[2:4]
             c = num[4:6]
@@ -80,9 +72,7 @@ class PartitionEntryMBR:
 
 class PartitionEntryVBR:
     def __init__(self, data):
-        # print data
-        self.name = ''
-        self.type_par = -1
+        mbr = None
         self.ra_beg_sec = -1
         self.bootCode = self.to_int(data[:6])
         self.FAT_name = self.to_int(data[6:22])
@@ -99,31 +89,21 @@ class PartitionEntryVBR:
         self.num_sec_b4_start = self.to_int(data[56:64])
         self.bit32_num_sec = self.to_int(data[64:72])
         if self.fat_bit16_size_sec == 0:
-            # print 'I AM NONE'
             self.fat_bit16_size_sec = self.to_int(data[72:80])
 
     def to_int(self, num):
         if len(num) == 2:
-            # print 'here @2'
             return int('0x{0}'.format(num), 16)
         elif len(num) == 4:
-            # print 'here @4'
             a = num[0:2]
             b = num[2:4]
             return int('0x{0}{1}'.format(b, a), 16)
         elif len(num) == 8:
-            # print 'here @8'
             a = num[0:2]
             b = num[2:4]
             c = num[4:6]
             d = num[6:8]
             return int('0x{0}{1}{2}{3}'.format(d,c,b,a), 16)
-    # create function to_hex
-    # need to parse incoming data to int
-    # instead of casting it throught program
-    # become more efficient
-    # cleanup code
-
 
 def BARS():
 	print "="*(85)
@@ -237,12 +217,7 @@ def main():
 
                 tmp = PartitionEntryVBR(binascii.hexlify(content[beg:end]))
                 tmp.ra_beg_sec = (partition.num_sec_MBR)*512
-                tmp.name = partition.name
-
-                if to_hex == 0x04 or to_hex == 0x06:
-                    tmp.type_par = partition.type_par
-                else:
-                    tmp.type_par = partition.type_par
+                tmp.mbr = partition
 
                 partitions_VBR.append(tmp)
 
@@ -254,7 +229,6 @@ def main():
         # size_partition = end_sector - start_sector
         print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, end_sector)
     BARS()
-    # exit()
 
     for partition in partitions_VBR:
         # calculate appropriate information
@@ -264,20 +238,20 @@ def main():
         fat_end_sec = fat_beg_sec+partition.num_FAT*partition.fat_bit16_size_sec-1
 
         sec_clus2 = 0
-        if partition.type_par == 0x0b or partition.type_par == 0x0c:
-            sec_clus2 = partition.ra_size_in_sec+(fat_end_sec-fat_beg_sec)
+        # FAT32
+        if partition.mbr.type_par == 0x0b or partition.mbr.type_par == 0x0c:
+            sec_clus2 = partition.ra_size_in_sec+(partition.num_FAT*partition.fat_bit16_size_sec)+partition.mbr.num_sec_MBR
+        # FAT16
         else:
-            sec_clus2 = partition.ra_size_in_sec+(fat_end_sec-fat_beg_sec)
+            sec_clus2 = partition.ra_size_in_sec+(partition.num_FAT*partition.fat_bit16_size_sec)+partition.mbr.num_sec_MBR+partition.num_files_root*32/partition.byte_per_sec
 
-        
-
-        print '{0}({1}):'.format(partition.name, PartitionTypes[partition.type_par])
+        print '{0}({1}):'.format(partition.mbr.name, PartitionTypes[partition.mbr.type_par])
         print 'Reserved area: Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(ra_beg_sec, ra_end_sec, partition.ra_size_in_sec)
         print 'Sectors per cluster: {0} sectors'.format(partition.sec_per_clus)
         print 'FAT area: Start sector: {0} Ending sector {1}'.format(fat_beg_sec, fat_end_sec)
         print '# of FATs: {0}'.format(partition.num_FAT)
         print 'The size of each FAT: {0} sectors'.format(partition.fat_bit16_size_sec)
-        print 'The first sector of cluster 2: {0} sectors'.format(partition.num_sec_b4_start)
+        print 'The first sector of cluster 2: {0} sectors'.format(sec_clus2)
         BARS()
 
 if __name__ == '__main__':
