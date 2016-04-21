@@ -39,14 +39,15 @@ def cmd_logical():
 		reserved_sec = int(arguments['--reserved'])
 		fat_tables = int(arguments['--fat-tables'])
 		fat_length = int(arguments['--fat-length'])
-		offset=1
+		offset=0
 
 		if arguments['--byte-address']:
 			offset = 512
 			if arguments['--sector-size']:
 				offset = int(arguments['--sector-size'])
 
-		return ((c_address*c_sz)+reserved_sec+(fat_tables*fat_length)-2)*offset
+		p_address = (c_address-2)*c_sz+reserved_sec+(fat_tables*fat_length)+offset
+		return p_address-offset
 
 def cmd_physical():
 	if arguments['--logical-known']:
@@ -59,7 +60,7 @@ def cmd_physical():
 			if arguments['--sector-size'] is not None:
 				sector_sz = int(arguments['--sector-size'])
 			return sector_sz*(p_address-offset)
-		return address+offset
+		return address
 
 	elif arguments['--cluster-known'] and arguments['--cluster-size'] and arguments['--reserved'] and arguments['--fat-tables'] and arguments['--fat-length']:
 		c_address = int(arguments['--cluster-known'])
@@ -67,18 +68,18 @@ def cmd_physical():
 		reserved_sec = int(arguments['--reserved'])
 		fat_tables = int(arguments['--fat-tables'])
 		fat_length = int(arguments['--fat-length'])
-		offset=1
+		offset=0
 
-		if arguments['--byte-address']:
-			offset = 512
-			if arguments['--sector-size']:
-				offset = int(arguments['--sector-size'])
+		if arguments['--partition-start']:
+			offset=int(arguments['--partition-start'])
 
-		return ((c_address*c_sz)+reserved_sec+(fat_tables*fat_length)-2)*offset
+		p_address = (c_address-2)*c_sz+reserved_sec+(fat_tables*fat_length)+offset
+		return p_address
 	
 def cmd_cluster():
 	address = None
 	sector_sz = 1
+	offset = 0
 	if arguments['--physical-known']:
 		address=int(arguments['--physical-known'])
 	elif arguments['logical-known']:
@@ -87,7 +88,9 @@ def cmd_cluster():
 		sector_sz = 512
 		if arguments['--sector-size']:
 			sector_sz = int(arguments['--sector-size'])
-	return address*sector_sz
+	if arguments['--partition-start']:
+		offset = int(arguments['--partition-start'])
+	return (address-offset)*sector_sz
 
 
 if __name__ == '__main__':
