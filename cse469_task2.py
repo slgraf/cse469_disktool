@@ -106,7 +106,7 @@ class PartitionEntryVBR:
             return int('0x{0}{1}{2}{3}'.format(d,c,b,a), 16)
 
 def BARS():
-	print "="*(85)
+	print "="*(50)
 
 #takes in filename, opens and parses through it
 def MD5(filename):
@@ -193,6 +193,9 @@ def main():
         #MD5 SHA1 Requirements
         MD5hash = MD5(arguments['FILE'])
         SHA1hash = SHA1(arguments['FILE'])
+        print ""
+        print "Checksums:"
+        BARS()
         print "MD5: {0}".format(MD5hash)
         print ""
         print "SHA1: {0}".format(SHA1hash)
@@ -226,8 +229,9 @@ def main():
         type_partition = PartitionTypes[partition.type_par]
         start_sector = partition.num_sec_MBR
         end_sector = partition.num_sec_par
+        strHex = "%0.2x" % partition.type_par
         # size_partition = end_sector - start_sector
-        print '({0}) {1}, {2}, {3}'.format(partition.type_par, type_partition, start_sector, end_sector)
+        print '({0}) {1}, {2}, {3}'.format(strHex, type_partition, str(start_sector).zfill(10), str(end_sector).zfill(10))
     BARS()
 
     for partition in partitions_VBR:
