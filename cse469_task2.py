@@ -56,25 +56,31 @@ class PartitionEntryMBR:
 	    self.num_sec_par = data[24:32]
 
 class PartitionEntryVBR:
-	def __init__(self, data):
+    def __init__(self, data):
         self.ra_beg_sec = -1
-		self.bootCode = data[:4]
-		self.FAT_name = data[4:20]
-		self.byte_per_sec = data[20:24]
-		self.sec_per_clus = data[24:26]
-		self.ra_size_in_sec = data[26:30]
-		self.num_FAT = data[30:32]
-		self.num_files_root = data[32:36]
-		self.bit16_num_sec = data[36:40]
-		self.med_type = data[40:42]
-		self.fat_bit16_size_sec = data[42:46]
-		self.sec_per_track = data[46:50]
-		self.num_heads = data[50:54]
-		self.num_sec_b4_start = data[54:62]
-		self.bit32_num_sec = data[62:72]
+        self.bootCode = self.to_int(data[:4])
+        self.FAT_name = self.to_int(data[4:20])
+        self.byte_per_sec = self.to_int(data[20:24])
+        self.sec_per_clus = self.to_int(data[24:26])
+        self.ra_size_in_sec = self.to_int(data[26:30])
+        self.num_FAT = self.to_int(data[30:32])
+        self.num_files_root = self.to_int(data[32:36])
+        self.bit16_num_sec = self.to_int(data[36:40])
+        self.med_type = self.to_int(data[40:42])
+        self.fat_bit16_size_sec = self.to_int(data[42:46])
+        self.sec_per_track = self.to_int(data[46:50])
+        self.num_heads = self.to_int(data[50:54])
+        self.num_sec_b4_start = self.to_int(data[54:62])
+        self.bit32_num_sec = self.to_int(data[62:72])
         try:
-            self.fat_bit16_size_sec = data[73:78]
+            self.fat_bit16_size_sec = self.to_int(data[73:78])
         except: pass
+
+    def to_int(self, num):
+        return int('0x{0}'.format(num), 16)
+        # try:
+        #     self.fat_bit16_size_sec = data[73:78]
+        # except: pass
     # create function to_hex
     # need to parse incoming data to int
     # instead of casting it throught program
@@ -211,7 +217,7 @@ def main():
 
         print 'Reserved area:   Start sector: {0} Ending sector: {1} Size: {2} sectors'.format(partition.ra_beg_sec, ra_end_sec, partition.ra_size_in_sec)
         print 'Sectors per cluster: {0} sectors'.format(partition.sec_per_clus)
-        print 'FAT area:    Start sector: {0} Ending sector{1}'.format(fat_beg_sec, fat_end_sec)
+        print 'FAT area:    Start sector: {0} Ending sector {1}'.format(fat_beg_sec, fat_end_sec)
         print '# of FATs: {0}'.format(partition.num_FAT)
         print 'The size of each FAT: {0} sectors'.format(partition.fat_bit16_size_sec)
         print 'The first sector of cluster 2: {0} sectors'.format(partition.num_sec_b4_start)
